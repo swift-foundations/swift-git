@@ -20,6 +20,16 @@ extension Git.Client {
         _ = try bytes(["fetch", "--no-tags", remote, specification], at: directory)
     }
 
+    public func fetch(
+        _ remote: Swift.String,
+        object: Git.Object.ID,
+        into destination: Git.Ref.Name,
+        at directory: Swift.String
+    ) throws(Error) {
+        let specification = "\(object.rawValue):\(destination.rawValue)"
+        _ = try bytes(["fetch", "--no-tags", remote, specification], at: directory)
+    }
+
     public func merge(
         _ reference: Swift.String,
         mode: Git.Merge.Mode,
@@ -33,8 +43,21 @@ extension Git.Client {
         _ = try bytes(arguments, at: directory)
     }
 
-    public func clone(_ remote: Swift.String, to directory: Swift.String) throws(Error) {
-        _ = try bytes(["clone", "--origin", "origin", remote, directory])
+    public func clone(
+        _ remote: Swift.String,
+        branch: Swift.String? = nil,
+        bare: Swift.Bool = false,
+        to directory: Swift.String
+    ) throws(Error) {
+        var arguments = ["clone", "--origin", "origin", "--no-tags"]
+        if let branch {
+            arguments += ["--single-branch", "--branch", branch]
+        }
+        if bare {
+            arguments.append("--bare")
+        }
+        arguments += [remote, directory]
+        _ = try bytes(arguments)
     }
 
     public func `switch`(_ branch: Swift.String, at directory: Swift.String) throws(Error) {

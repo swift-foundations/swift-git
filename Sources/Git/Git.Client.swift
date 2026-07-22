@@ -56,6 +56,18 @@ extension Git {
             }
         }
 
+        internal func result(
+            _ arguments: [Swift.String],
+            at directory: Swift.String? = nil
+        ) throws(Error) -> (termination: Termination, stdout: [UInt8], stderr: [UInt8]) {
+            let output = try execute(arguments, at: directory)
+            return (
+                termination: termination(output.status),
+                stdout: output.stdout ?? [],
+                stderr: output.stderr ?? []
+            )
+        }
+
         internal func text(
             _ arguments: [Swift.String],
             at directory: Swift.String? = nil

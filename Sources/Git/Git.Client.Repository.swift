@@ -47,6 +47,28 @@ extension Git.Client {
         return count
     }
 
+    public func ancestor(
+        _ ancestor: Git.Object.ID,
+        of descendant: Git.Object.ID,
+        at directory: Swift.String
+    ) throws(Error) -> Swift.Bool {
+        let arguments = ["merge-base", "--is-ancestor", ancestor.rawValue, descendant.rawValue]
+        let result = try result(arguments, at: directory)
+        switch result.termination {
+        case .exited(code: 0):
+            return true
+        case .exited(code: 1):
+            return false
+        default:
+            throw .command(
+                arguments: arguments,
+                termination: result.termination,
+                stdout: result.stdout,
+                stderr: result.stderr
+            )
+        }
+    }
+
     public func status(at directory: Swift.String) throws(Error) -> [Git.Status.Entry] {
         let output = try bytes(["status", "--porcelain=v1", "-z", "--untracked-files=normal"], at: directory)
         do throws(Git.Status.Error) {
