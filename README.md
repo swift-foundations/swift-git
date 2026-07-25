@@ -55,6 +55,45 @@ Add the product to your target:
 
 ---
 
+## Error Handling
+
+`Git.Client` operations throw a typed `Git.Client.Error`:
+
+```
+Git.Client.Error
+├── .execution                          // git executable could not be launched
+├── .command(arguments:termination:     // git exited non-zero; carries argv,
+│            stdout:stderr:)            //   termination, and captured output
+├── .advertisement(Git.Ref.Advertisement.Error)  // malformed ref advertisement
+├── .status(Git.Status.Error)          // `git status` output could not be parsed
+├── .object(String)                    // unexpected object output
+├── .count(String)                     // unexpected rev-count output
+└── .missing(Git.Ref.Name)             // requested ref not present
+```
+
+```swift
+do {
+    let clean = try git.status(at: repository).isEmpty
+    _ = clean
+} catch .execution {
+    // git is not installed or could not be launched
+} catch .command(let arguments, let termination, _, let stderr) {
+    _ = (arguments, termination, stderr)
+} catch .advertisement(let error) {
+    _ = error
+} catch .status(let error) {
+    _ = error
+} catch .object(let detail) {
+    _ = detail
+} catch .count(let detail) {
+    _ = detail
+} catch .missing(let ref) {
+    _ = ref
+}
+```
+
+---
+
 ## Community
 
 <!-- BEGIN: discussion -->
