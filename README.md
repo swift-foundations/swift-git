@@ -30,7 +30,16 @@ dependencies: [
 ]
 ```
 
-Use the `Git` product and import `Git`.
+Add the product to your target:
+
+```swift
+.target(
+    name: "YourTarget",
+    dependencies: [
+        .product(name: "Git", package: "swift-git")
+    ]
+)
+```
 
 ### Requirements
 
