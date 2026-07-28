@@ -5,6 +5,5 @@ topics:
   - git
   - version-control
 homepage: "https://swift-institute.org"
-visibility: private
 readme:
   family: E
