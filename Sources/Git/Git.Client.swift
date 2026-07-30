@@ -47,11 +47,11 @@ extension Git {
 
         private func termination(_ status: Process.Status) -> Termination {
             switch status {
-            case let .exited(code):
+            case .exited(let code):
                 return .exited(code: code)
-            case let .signaled(signal):
+            case .signaled(let signal):
                 return .signaled(signal: signal)
-            case let .stopped(signal):
+            case .stopped(let signal):
                 return .stopped(signal: signal)
             }
         }
