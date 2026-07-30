@@ -49,8 +49,10 @@ extension Git {
             switch status {
             case .exited(let code):
                 return .exited(code: code)
+
             case .signaled(let signal):
                 return .signaled(signal: signal)
+
             case .stopped(let signal):
                 return .stopped(signal: signal)
             }

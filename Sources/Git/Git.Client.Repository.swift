@@ -57,8 +57,10 @@ extension Git.Client {
         switch result.termination {
         case .exited(code: 0):
             return true
+
         case .exited(code: 1):
             return false
+
         default:
             throw .command(
                 arguments: arguments,
