@@ -10,7 +10,6 @@ extension Git.Client {
         func `repository state and status use typed operations`() throws {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             // swift-linter:disable:next try optional
-            // swiftlint:disable:next no_try_optional
             // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -30,7 +29,6 @@ extension Git.Client {
             let source = root.appending(path: "source.git")
             let probe = root.appending(path: "probe.git")
             // swift-linter:disable:next try optional
-            // swiftlint:disable:next no_try_optional
             // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -53,7 +51,6 @@ extension Git.Client {
             let remote = root.appending(path: "remote.git")
             let probe = root.appending(path: "probe.git")
             // swift-linter:disable:next try optional
-            // swiftlint:disable:next no_try_optional
             // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
