@@ -9,81 +9,83 @@ extension Git {
         public init(executable: Swift.String = "/usr/bin/git") {
             self.executable = executable
         }
+    }
+}
 
-        private func execute(
-            _ arguments: [Swift.String],
-            at directory: Swift.String? = nil
-        ) throws(Error) -> Process.Output {
-            do throws(Process.Error) {
-                return try Process.Spawn.run(
-                    .init(
-                        executable: executable,
-                        arguments: arguments,
-                        stdout: .pipe,
-                        stderr: .pipe,
-                        workingDirectory: directory
-                    )
-                )
-            } catch {
-                throw .execution
-            }
-        }
-
-        internal func bytes(
-            _ arguments: [Swift.String],
-            at directory: Swift.String? = nil
-        ) throws(Error) -> [UInt8] {
-            let output = try execute(arguments, at: directory)
-            guard output.status == .exited(code: 0) else {
-                throw .command(
+extension Git.Client {
+    private func execute(
+        _ arguments: [Swift.String],
+        at directory: Swift.String? = nil
+    ) throws(Error) -> Process.Output {
+        do throws(Process.Error) {
+            return try Process.Spawn.run(
+                .init(
+                    executable: executable,
                     arguments: arguments,
-                    termination: termination(output.status),
-                    stdout: output.stdout ?? [],
-                    stderr: output.stderr ?? []
+                    stdout: .pipe,
+                    stderr: .pipe,
+                    workingDirectory: directory
                 )
-            }
-            return output.stdout ?? []
+            )
+        } catch {
+            throw .execution
         }
+    }
 
-        private func termination(_ status: Process.Status) -> Termination {
-            switch status {
-            case .exited(let code):
-                return .exited(code: code)
-
-            case .signaled(let signal):
-                return .signaled(signal: signal)
-
-            case .stopped(let signal):
-                return .stopped(signal: signal)
-            }
-        }
-
-        internal func result(
-            _ arguments: [Swift.String],
-            at directory: Swift.String? = nil
-        ) throws(Error) -> (termination: Termination, stdout: [UInt8], stderr: [UInt8]) {
-            let output = try execute(arguments, at: directory)
-            return (
+    internal func bytes(
+        _ arguments: [Swift.String],
+        at directory: Swift.String? = nil
+    ) throws(Error) -> [UInt8] {
+        let output = try execute(arguments, at: directory)
+        guard output.status == .exited(code: 0) else {
+            throw .command(
+                arguments: arguments,
                 termination: termination(output.status),
                 stdout: output.stdout ?? [],
                 stderr: output.stderr ?? []
             )
         }
+        return output.stdout ?? []
+    }
 
-        internal func text(
-            _ arguments: [Swift.String],
-            at directory: Swift.String? = nil
-        ) throws(Error) -> Swift.String {
-            let bytes = try bytes(arguments, at: directory)
-            var start = bytes.startIndex
-            var end = bytes.endIndex
-            while start < end, [9, 10, 13, 32].contains(bytes[start]) {
-                start = bytes.index(after: start)
-            }
-            while start < end, [9, 10, 13, 32].contains(bytes[bytes.index(before: end)]) {
-                end = bytes.index(before: end)
-            }
-            return Swift.String(decoding: bytes[start..<end], as: UTF8.self)
+    private func termination(_ status: Process.Status) -> Termination {
+        switch status {
+        case .exited(let code):
+            return .exited(code: code)
+
+        case .signaled(let signal):
+            return .signaled(signal: signal)
+
+        case .stopped(let signal):
+            return .stopped(signal: signal)
         }
+    }
+
+    internal func result(
+        _ arguments: [Swift.String],
+        at directory: Swift.String? = nil
+    ) throws(Error) -> (termination: Termination, stdout: [UInt8], stderr: [UInt8]) {
+        let output = try execute(arguments, at: directory)
+        return (
+            termination: termination(output.status),
+            stdout: output.stdout ?? [],
+            stderr: output.stderr ?? []
+        )
+    }
+
+    internal func text(
+        _ arguments: [Swift.String],
+        at directory: Swift.String? = nil
+    ) throws(Error) -> Swift.String {
+        let bytes = try bytes(arguments, at: directory)
+        var start = bytes.startIndex
+        var end = bytes.endIndex
+        while start < end, [9, 10, 13, 32].contains(bytes[start]) {
+            start = bytes.index(after: start)
+        }
+        while start < end, [9, 10, 13, 32].contains(bytes[bytes.index(before: end)]) {
+            end = bytes.index(before: end)
+        }
+        return Swift.String(decoding: bytes[start..<end], as: UTF8.self)
     }
 }

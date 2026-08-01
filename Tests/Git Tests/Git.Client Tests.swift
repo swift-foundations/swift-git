@@ -9,6 +9,9 @@ extension Git.Client {
         @Test
         func `repository state and status use typed operations`() throws {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+            // swift-linter:disable:next try optional
+            // swiftlint:disable:next no_try_optional
+            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -26,6 +29,9 @@ extension Git.Client {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             let source = root.appending(path: "source.git")
             let probe = root.appending(path: "probe.git")
+            // swift-linter:disable:next try optional
+            // swiftlint:disable:next no_try_optional
+            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -46,6 +52,9 @@ extension Git.Client {
             let source = root.appending(path: "source")
             let remote = root.appending(path: "remote.git")
             let probe = root.appending(path: "probe.git")
+            // swift-linter:disable:next try optional
+            // swiftlint:disable:next no_try_optional
+            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -77,14 +86,21 @@ extension Git.Client {
     }
 }
 
-private func command(_ arguments: [String], at directory: URL) throws {
+private func command(_ arguments: [String], at directory: URL) throws(CocoaError) {
     let process = Foundation.Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
     process.arguments = arguments
     process.currentDirectoryURL = directory
     process.standardOutput = FileHandle.nullDevice
     process.standardError = FileHandle.nullDevice
-    try process.run()
+    // swift-linter:disable:next do throws for typed catch
+    // REASON: Foundation.Process.run() is an untyped cross-module throwing API;
+    // its failure is normalized to the same CocoaError this helper already throws.
+    do {
+        try process.run()
+    } catch {
+        throw CocoaError(.executableNotLoadable)
+    }
     process.waitUntilExit()
     guard process.terminationStatus == 0 else {
         throw CocoaError(.executableNotLoadable)
