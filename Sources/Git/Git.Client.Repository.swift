@@ -16,7 +16,10 @@ extension Git.Client {
         try text(["rev-parse", "--show-toplevel"], at: directory)
     }
 
-    public func remote(_ name: Swift.String, at directory: Swift.String) throws(Error) -> Swift.String {
+    public func remote(
+        _ name: Swift.String,
+        at directory: Swift.String
+    ) throws(Error) -> Swift.String {
         try text(["remote", "get-url", name], at: directory)
     }
 
@@ -24,8 +27,14 @@ extension Git.Client {
         try text(["branch", "--show-current"], at: directory)
     }
 
-    public func upstream(_ branch: Swift.String, at directory: Swift.String) throws(Error) -> Swift.String {
-        try text(["for-each-ref", "--format=%(upstream:short)", "refs/heads/\(branch)"], at: directory)
+    public func upstream(
+        _ branch: Swift.String,
+        at directory: Swift.String
+    ) throws(Error) -> Swift.String {
+        try text(
+            ["for-each-ref", "--format=%(upstream:short)", "refs/heads/\(branch)"],
+            at: directory
+        )
     }
 
     public func head(
@@ -39,7 +48,8 @@ extension Git.Client {
         return object
     }
 
-    public func count(_ range: Swift.String, at directory: Swift.String) throws(Error) -> Swift.Int {
+    public func count(_ range: Swift.String, at directory: Swift.String) throws(Error) -> Swift.Int
+    {
         let value = try text(["rev-list", "--count", range], at: directory)
         guard let count = Swift.Int(value) else {
             throw .count(value)
@@ -72,7 +82,10 @@ extension Git.Client {
     }
 
     public func status(at directory: Swift.String) throws(Error) -> [Git.Status.Entry] {
-        let output = try bytes(["status", "--porcelain=v1", "-z", "--untracked-files=normal"], at: directory)
+        let output = try bytes(
+            ["status", "--porcelain=v1", "-z", "--untracked-files=normal"],
+            at: directory
+        )
         do throws(Git.Status.Error) {
             return try Git.Status.parse(output)
         } catch {
