@@ -28,7 +28,7 @@ extension Git.Client {
                 )
             )
         } catch {
-            throw .execution
+            throw .execution(executable: executable, reason: "\(error)")
         }
     }
 
