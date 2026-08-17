@@ -6,7 +6,7 @@ extension Git {
     public struct Client: Sendable {
         public let executable: Swift.String
 
-        public init(executable: Swift.String = "/usr/bin/git") {
+        public init(executable: Swift.String = Git.Client.installed) {
             self.executable = executable
         }
     }

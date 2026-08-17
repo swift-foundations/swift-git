@@ -19,7 +19,16 @@ extension Git.Client {
 
             #expect(try client.repository(at: root.path))
             let top = try client.top(at: root.path)
-            #expect(top == root.path || top == "/private\(root.path)")
+            // `git rev-parse --show-toplevel` reports forward slashes on
+            // every platform, including Windows, where `URL.path` spells the
+            // same directory with backslashes. The comparison is about which
+            // directory Git named, not how the separator is spelled, so both
+            // sides are normalised before it.
+            let normalized = { (path: String) in path.replacingOccurrences(of: "\\", with: "/") }
+            #expect(
+                normalized(top) == normalized(root.path)
+                    || normalized(top) == "/private\(normalized(root.path))"
+            )
             #expect(try client.status(at: root.path).isEmpty)
         }
 
