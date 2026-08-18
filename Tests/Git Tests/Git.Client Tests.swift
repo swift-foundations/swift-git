@@ -18,18 +18,23 @@ extension Git.Client {
             try client.initialize(at: root.path, bare: false)
 
             #expect(try client.repository(at: root.path))
-            let top = try client.top(at: root.path)
-            // `git rev-parse --show-toplevel` reports forward slashes on
-            // every platform, including Windows, where `URL.path` spells the
-            // same directory with backslashes. The comparison is about which
-            // directory Git named, not how the separator is spelled, so both
-            // sides are normalised before it.
-            let normalized = { (path: String) in path.replacingOccurrences(of: "\\", with: "/") }
-            #expect(
-                normalized(top) == normalized(root.path)
-                    || normalized(top) == "/private\(normalized(root.path))"
-            )
             #expect(try client.status(at: root.path).isEmpty)
+
+            let top = try client.top(at: root.path)
+            // `git rev-parse --show-toplevel` may spell the repository root
+            // differently from `URL.path`: forward slashes and long-form
+            // names on Windows (where the runner's temporary directory is an
+            // 8.3 short name), a `/private` prefix on macOS. The claim is
+            // that `top` names the same directory, not how it is spelled, so
+            // identity is proven through the filesystem: a sentinel written
+            // at the root must be visible through `top`.
+            let sentinel = "Sentinel-\(UUID().uuidString).txt"
+            try "sentinel\n".write(
+                to: root.appending(path: sentinel),
+                atomically: true,
+                encoding: .utf8
+            )
+            #expect(FileManager.default.fileExists(atPath: "\(top)/\(sentinel)"))
         }
 
         @Test
@@ -66,19 +71,19 @@ extension Git.Client {
 
             let client = Git.Client()
             try client.initialize(at: source.path, bare: false)
-            try command(["config", "user.email", "workspace@swift.institute"], at: source)
-            try command(["config", "user.name", "Workspace Tests"], at: source)
-            try command(["branch", "-M", "main"], at: source)
+            try command(client, ["config", "user.email", "workspace@swift.institute"], at: source)
+            try command(client, ["config", "user.name", "Workspace Tests"], at: source)
+            try command(client, ["branch", "-M", "main"], at: source)
 
             let fixture = source.appending(path: "Fixture.txt")
             try "first\n".write(to: fixture, atomically: true, encoding: .utf8)
-            try command(["add", "Fixture.txt"], at: source)
-            try command(["commit", "-m", "first"], at: source)
+            try command(client, ["add", "Fixture.txt"], at: source)
+            try command(client, ["commit", "-m", "first"], at: source)
             let first = try client.head(at: source.path)
 
             try "second\n".write(to: fixture, atomically: true, encoding: .utf8)
-            try command(["add", "Fixture.txt"], at: source)
-            try command(["commit", "-m", "second"], at: source)
+            try command(client, ["add", "Fixture.txt"], at: source)
+            try command(client, ["commit", "-m", "second"], at: source)
             let second = try client.head(at: source.path)
 
             try client.clone(source.path, branch: "main", bare: true, to: remote.path)
@@ -92,23 +97,13 @@ extension Git.Client {
     }
 }
 
-private func command(_ arguments: [String], at directory: URL) throws(CocoaError) {
-    let process = Foundation.Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
-    process.arguments = arguments
-    process.currentDirectoryURL = directory
-    process.standardOutput = FileHandle.nullDevice
-    process.standardError = FileHandle.nullDevice
-    // swift-linter:disable:next do throws for typed catch
-    // REASON: Foundation.Process.run() is an untyped cross-module throwing API;
-    // its failure is normalized to the same CocoaError this helper already throws.
-    do {
-        try process.run()
-    } catch {
-        throw CocoaError(.executableNotLoadable)
-    }
-    process.waitUntilExit()
-    guard process.terminationStatus == 0 else {
-        throw CocoaError(.executableNotLoadable)
-    }
+/// Runs one fixture-shaping Git command through the client under test, so the
+/// fixture uses the same PATH-located executable and spawn substrate on every
+/// platform instead of assuming a POSIX `/usr/bin/git`.
+private func command(
+    _ client: Git.Client,
+    _ arguments: [Swift.String],
+    at directory: URL
+) throws(Git.Client.Error) {
+    _ = try client.bytes(arguments, at: directory.path)
 }
