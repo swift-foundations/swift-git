@@ -47,6 +47,7 @@ extension Git.Client {
         _ remote: Swift.String,
         branch: Swift.String? = nil,
         bare: Swift.Bool = false,
+        checkout: Swift.Bool = true,
         to directory: Swift.String
     ) throws(Error) {
         var arguments = ["clone", "--origin", "origin", "--no-tags"]
@@ -56,8 +57,21 @@ extension Git.Client {
         if bare {
             arguments.append("--bare")
         }
+        if !checkout {
+            arguments.append("--no-checkout")
+        }
         arguments += [remote, directory]
         _ = try bytes(arguments)
+    }
+
+    /// Detached checkout of one exact object. The worktree afterwards holds
+    /// exactly the tree that commit names; no branch ref is created,
+    /// consulted, or moved, so a moving branch tip cannot choose the bytes.
+    public func checkout(
+        detached object: Git.Object.ID,
+        at directory: Swift.String
+    ) throws(Error) {
+        _ = try bytes(["checkout", "--detach", object.rawValue], at: directory)
     }
 
     public func `switch`(_ branch: Swift.String, at directory: Swift.String) throws(Error) {
