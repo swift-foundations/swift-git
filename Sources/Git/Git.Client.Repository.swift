@@ -48,6 +48,47 @@ extension Git.Client {
         return object
     }
 
+    /// Whether `object` names a commit present in the repository's object
+    /// store. Presence is a statement about the store, not about any ref:
+    /// an unreachable commit still answers `true`, and a moving branch tip
+    /// cannot change the answer for a fixed identifier.
+    public func contains(
+        commit object: Git.Object.ID,
+        at directory: Swift.String
+    ) throws(Error) -> Swift.Bool {
+        let arguments = ["cat-file", "-e", "\(object.rawValue)^{commit}"]
+        let result = try result(arguments, at: directory)
+        switch result.termination {
+        case .exited(code: 0):
+            return true
+
+        case .exited(code: 1), .exited(code: 128):
+            return false
+
+        default:
+            throw .command(
+                arguments: arguments,
+                termination: result.termination,
+                stdout: result.stdout,
+                stderr: result.stderr
+            )
+        }
+    }
+
+    /// The tree object a commit names. Two checkouts of the same commit at
+    /// different destinations agree on this identity, which makes it the
+    /// canonical answer to "which exact source bytes does this commit name".
+    public func tree(
+        of object: Git.Object.ID,
+        at directory: Swift.String
+    ) throws(Error) -> Git.Object.ID {
+        let value = try text(["rev-parse", "\(object.rawValue)^{tree}"], at: directory)
+        guard let tree = Git.Object.ID(rawValue: value) else {
+            throw .object(value)
+        }
+        return tree
+    }
+
     public func count(_ range: Swift.String, at directory: Swift.String) throws(Error) -> Swift.Int
     {
         let value = try text(["rev-list", "--count", range], at: directory)
