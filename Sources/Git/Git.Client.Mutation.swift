@@ -64,9 +64,6 @@ extension Git.Client {
         _ = try bytes(arguments)
     }
 
-    /// Detached checkout of one exact object. The worktree afterwards holds
-    /// exactly the tree that commit names; no branch ref is created,
-    /// consulted, or moved, so a moving branch tip cannot choose the bytes.
     public func checkout(
         detached object: Git.Object.ID,
         at directory: Swift.String

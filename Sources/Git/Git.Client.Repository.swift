@@ -48,10 +48,6 @@ extension Git.Client {
         return object
     }
 
-    /// Whether `object` names a commit present in the repository's object
-    /// store. Presence is a statement about the store, not about any ref:
-    /// an unreachable commit still answers `true`, and a moving branch tip
-    /// cannot change the answer for a fixed identifier.
     public func contains(
         commit object: Git.Object.ID,
         at directory: Swift.String
@@ -75,9 +71,6 @@ extension Git.Client {
         }
     }
 
-    /// The tree object a commit names. Two checkouts of the same commit at
-    /// different destinations agree on this identity, which makes it the
-    /// canonical answer to "which exact source bytes does this commit name".
     public func tree(
         of object: Git.Object.ID,
         at directory: Swift.String

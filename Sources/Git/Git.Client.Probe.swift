@@ -1,7 +1,7 @@
 public import Git_Standard
 
 extension Git.Client {
-    /// Reads one remote ref without changing any local repository metadata.
+
     public func probe(
         _ remote: Swift.String,
         ref: Git.Ref.Name

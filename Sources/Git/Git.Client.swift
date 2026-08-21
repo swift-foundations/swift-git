@@ -2,7 +2,7 @@ public import Git_Standard
 private import Process
 
 extension Git {
-    /// A Foundation-free client for the installed Git executable.
+
     public struct Client: Sendable {
         public let executable: Swift.String
 

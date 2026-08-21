@@ -9,8 +9,7 @@ extension Git.Client {
         @Test
         func `repository state and status use typed operations`() throws {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-            // swift-linter:disable:next try optional
-            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
+
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -21,13 +20,7 @@ extension Git.Client {
             #expect(try client.status(at: root.path).isEmpty)
 
             let top = try client.top(at: root.path)
-            // `git rev-parse --show-toplevel` may spell the repository root
-            // differently from `URL.path`: forward slashes and long-form
-            // names on Windows (where the runner's temporary directory is an
-            // 8.3 short name), a `/private` prefix on macOS. The claim is
-            // that `top` names the same directory, not how it is spelled, so
-            // identity is proven through the filesystem: a sentinel written
-            // at the root must be visible through `top`.
+
             let sentinel = "Sentinel-\(UUID().uuidString).txt"
             try "sentinel\n".write(
                 to: root.appending(path: sentinel),
@@ -42,8 +35,7 @@ extension Git.Client {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             let source = root.appending(path: "source.git")
             let probe = root.appending(path: "probe.git")
-            // swift-linter:disable:next try optional
-            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
+
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -64,8 +56,7 @@ extension Git.Client {
             let source = root.appending(path: "source")
             let remote = root.appending(path: "remote.git")
             let probe = root.appending(path: "probe.git")
-            // swift-linter:disable:next try optional
-            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
+
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -100,8 +91,7 @@ extension Git.Client {
             let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             let source = root.appending(path: "source")
             let clone = root.appending(path: "clone")
-            // swift-linter:disable:next try optional
-            // REASON: Foundation.FileManager.removeItem(at:) is an untyped cross-module throwing API.
+
             defer { try? FileManager.default.removeItem(at: root) }
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
@@ -122,8 +112,6 @@ extension Git.Client {
             try command(client, ["commit", "-m", "second"], at: source)
             let second = try client.head(at: source.path)
 
-            // Presence answers from the object store; an identifier the
-            // store has never seen answers false rather than throwing.
             #expect(try client.contains(commit: first, at: source.path))
             #expect(try client.contains(commit: second, at: source.path))
             let absent = try #require(
@@ -131,16 +119,10 @@ extension Git.Client {
             )
             #expect(try !client.contains(commit: absent, at: source.path))
 
-            // A commit names one tree, and distinct commits over distinct
-            // bytes name distinct trees.
             let firstTree = try client.tree(of: first, at: source.path)
             let secondTree = try client.tree(of: second, at: source.path)
             #expect(firstTree != secondTree)
 
-            // A clone without checkout populates no worktree until an exact
-            // detached checkout selects one commit — after which HEAD, the
-            // tree identity, and a clean status all attest the exact bytes,
-            // and no ref in the clone was consulted to choose them.
             try client.clone(source.path, branch: "main", checkout: false, to: clone.path)
             #expect(
                 !FileManager.default.fileExists(
@@ -158,8 +140,6 @@ extension Git.Client {
                 ) == "first\n"
             )
 
-            // Advancing the source branch after the checkout cannot move a
-            // detached head: the clone still stands at the exact object.
             try "third\n".write(to: fixture, atomically: true, encoding: .utf8)
             try command(client, ["add", "Fixture.txt"], at: source)
             try command(client, ["commit", "-m", "third"], at: source)
@@ -168,9 +148,6 @@ extension Git.Client {
     }
 }
 
-/// Runs one fixture-shaping Git command through the client under test, so the
-/// fixture uses the same PATH-located executable and spawn substrate on every
-/// platform instead of assuming a POSIX `/usr/bin/git`.
 private func command(
     _ client: Git.Client,
     _ arguments: [Swift.String],
