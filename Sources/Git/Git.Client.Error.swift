@@ -14,6 +14,7 @@ extension Git.Client {
         case status(Git.Status.Error)
         case object(Swift.String)
         case count(Swift.String)
+        case paths(Swift.String)
         case missing(Git.Ref.Name)
     }
 }
