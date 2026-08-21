@@ -89,7 +89,7 @@ extension Git.Client {
                 return attributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0
             }
         #else
-            return unsafe path.withCString { unsafe access($0, X_OK) == 0 }
+            return path.withCString { unsafe access($0, X_OK) == 0 }
         #endif
     }
 
