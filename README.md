@@ -26,7 +26,7 @@ print(branch, clean, remote.object)
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/swift-foundations/swift-git.git", branch: "main")
+    .package(url: "https://github.com/swift-compositions/swift-git.git", branch: "main")
 ]
 ```
 
@@ -51,7 +51,7 @@ Add the product to your target:
 
 ## Architecture
 
-`Git.Client` composes [swift-process](https://github.com/swift-foundations/swift-process) with the typed representations in [swift-git-standard](https://github.com/swift-standards/swift-git-standard). It exposes repository probes, ref advertisement, status parsing, clone, fetch, fast-forward merge, branch switching, and upstream tracking without importing Foundation.
+`Git.Client` composes [swift-process](https://github.com/swift-compositions/swift-process) with the typed representations in [swift-git-standard](https://github.com/swift-standards/swift-git-standard). It exposes repository probes, ref advertisement, status parsing, clone, fetch, fast-forward merge, branch switching, and upstream tracking without importing Foundation.
 
 ---
 
